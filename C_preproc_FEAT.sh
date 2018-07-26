@@ -8,10 +8,7 @@
 
 # NOTE 3: The Nifti Toolbox might require you to reslice images, thus altering their dimensions. The files that FIX requires must be of the same size as the registration matrices produced by FEAT. For this reason, one must VERIFY beforehand if the files will require reslicing in order to perform it before FEAT. Currently (19.06.17), all processes that require the Nifti toolbox operare with load_untouch_nii and save_untouch_nii, thus rendering this point moot, but this might change in the future.
 
-source preproc_config.sh
-
-# Test
-#SubjectID="EYEMEMtest"
+source preproc2_config.sh
 
 # PBS Log Info
 CurrentPreproc="FEAT"
@@ -39,11 +36,11 @@ for SUB in ${SubjectID} ; do
 			# Name of brain extracted anatomical and functional image to be used.
 			AnatImage="${SUB}_${SessionName}t1_brain"
 			# Path to the original functional image folder.
-			OriginalPath="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/${RUN}"
+			OriginalPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}mri/${RUN}"
 			# Path to the pipeline specific folder.
-			FuncPath="${ProjectDirectory}/data/${SUB}/${SessionFolder}${PreprocPipe}/${RUN}"	
+			FuncPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}${PreprocPipe}/${RUN}"	
 			# Path to the anatomical imaged
-			AnatPath="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/t1"
+			AnatPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}mri/t1"
 			
 			if [ ! -f ${OriginalPath}/${FuncImage}.nii.gz ]; then
 				continue
@@ -120,8 +117,8 @@ for SUB in ${SubjectID} ; do
             echo "sed  -i 's|dummyNonLinearWarp|'${NonLinearWarp}'|g'  			${FuncImage}.fsf" 			>> job
 				# B0 unwarping
 			if [ "${Unwarping}" == "1" ]; then
-				FieldRad="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_${SessionName}fmap_rad"
-				FieldMapBrain="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_${SessionName}fmap_mag_brain"
+				FieldRad="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_fmap_rad"
+				FieldMapBrain="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_fmap_mag_brain"
 			else FieldRad="Unused"; FieldMapBrain="Unused"; fi 
 			echo "sed  -i 's|dummyFieldRad|'${FieldRad}'|g'  														  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyFieldMapBrain|'${FieldMapBrain}'|g'  												  		${FuncImage}.fsf" 			>> job
@@ -131,7 +128,7 @@ for SUB in ${SubjectID} ; do
 			echo "sed  -i 's|dummySignalLossThresh|'${SignalLossThresh}'|g'  										  		${FuncImage}.fsf"           >> job
 				# Other Parameters
 	        echo "sed  -i 's|dummyIntensityNormalization|'${IntensityNormalization}'|g'										${FuncImage}.fsf" 			>> job
-			echo "sed  -i 's|dummySliceTimingCorrection|'${lSiceTimingCorrection}'|g' 										${FuncImage}.fsf" 			>> job
+			echo "sed  -i 's|dummySliceTimingCorrection|'${SliceTimingCorrection}'|g' 										${FuncImage}.fsf" 			>> job
 			
 			# Run feat command.                                                                    
 			echo "feat ${FuncImage}.fsf"           										>> job
