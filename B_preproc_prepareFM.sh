@@ -60,7 +60,7 @@ for SUB in ${SubjectID} ; do
 		
 		#divide by two
 
-		echo "fslmaths ${FieldOrigPath}/${MagImage} -Tmean MagnitudeMean" 		>> job
+		echo "fslmaths ${FieldOrigPath}/${MagImage} -Tmean ${SUB}_MagnitudeMean" 		>> job
 
 		### They say BET, I'm going to use ANTs bra
 
@@ -68,17 +68,17 @@ for SUB in ${SubjectID} ; do
 		
 		# Perform Brain Extraction
 		
-		echo -n "antsBrainExtraction.sh -d 3 -a MagnitudeMean.nii.gz -e ${TemplateImage} " 	>> job
+		echo -n "antsBrainExtraction.sh -d 3 -a ${SUB}_MagnitudeMean.nii.gz -e ${TemplateImage} " 	>> job
 		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -o ${ANTsPath}" 					>> job
 
 		# If the final ANTs output isn't created, write a text file to be used as a verification of the output outcome.
 		echo "if [ ! -f ${ANTsPath}BrainExtractionBrain.nii.gz ]; then echo 'BrainExtractionBrain file was not produced.' >> ${CrashLog}; fi" >> job
 
-		echo "cp ${ANTsPath}BrainExtractionBrain.nii.gz ${FMPath}/Magnitude_brain.nii.gz"		>> job
+		echo "cp ${ANTsPath}BrainExtractionBrain.nii.gz ${FMPath}/${SUB}_Magnitude_brain.nii.gz"		>> job
 
 		#${FSLDIR}/bin/imcp ${PhaseInputName} ${WD}/Phase
 
-		echo "fsl_prepare_fieldmap SIEMENS ${FieldOrigPath}/${PhaseImage} Magnitude_brain 2.46"		>> job
+		echo "fsl_prepare_fieldmap SIEMENS ${FieldOrigPath}/${PhaseImage} ${SUB}_Magnitude_brain ${SUB}_fmap_rads 2.46"		>> job
 
 		## echo "cd ${FMPath}"									>> job
 		echo "chmod -R 770 ."  									>> job
