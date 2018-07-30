@@ -78,7 +78,7 @@ for SUB in ${SubjectID} ; do
 
 		#${FSLDIR}/bin/imcp ${PhaseInputName} ${WD}/Phase
 
-		echo "fsl_prepare_fieldmap SIEMENS ${PhaseInputName} ${FMPath}/Magnitude_brain 2.46"		>> job
+		echo "fsl_prepare_fieldmap SIEMENS ${FieldOrigPath}/${PhaseImage} Magnitude_brain 2.46"		>> job
 
 		## echo "cd ${FMPath}"									>> job
 		echo "chmod -R 770 ."  									>> job
