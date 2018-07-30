@@ -117,8 +117,8 @@ for SUB in ${SubjectID} ; do
             echo "sed  -i 's|dummyNonLinearWarp|'${NonLinearWarp}'|g'  			${FuncImage}.fsf" 			>> job
 				# B0 unwarping
 			if [ "${Unwarping}" == "1" ]; then
-				FieldRad="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_fmap_rad"
-				FieldMapBrain="${ProjectDirectory}/data/${SUB}/${SessionFolder}mri/gre/${SUB}_fmap_mag_brain"
+				FieldRad="${ProjectDirectory}/data_renamed/${SUB}/preproc2/greprep/${SUB}_fmap_rads"
+				FieldMapBrain="${ProjectDirectory}/data_renamed/${SUB}/preproc2/greprep/${SUB}_Magnitude_brain"
 			else FieldRad="Unused"; FieldMapBrain="Unused"; fi 
 			echo "sed  -i 's|dummyFieldRad|'${FieldRad}'|g'  														  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyFieldMapBrain|'${FieldMapBrain}'|g'  												  		${FuncImage}.fsf" 			>> job
