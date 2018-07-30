@@ -21,16 +21,19 @@ for SUB in ${SubjectID} ; do
 		# Name of magnitudue image to be used
 		MagImage="${SUB}_gremag" 
 				
-		# Output path for field map prep procedure
-		ANTsPath="${AnatPath}/tempANTs/${AnatImage}_ANTs_"
+		# Name of output preprocessing dir		
+		FMpath="${ProjectDirectory}/data_renamed/${SUB}/mri/greprep"
+
+		# Output path for field map prep procedure with ANTs (i.e. brain extraction)
+		ANTsPath="${FMpath}/tempANTs/FM_ANTs_"
 		
 		# Start log
-		StartLog="${FMpath}started.txt"
+		StartLog="${ANTsPath}started.txt"
 		# Error message if ANTs did not produce the expected output
-		CrashLog="${FMpath}failed.txt"
+		CrashLog="${ANTsPath}failed.txt"
 		
 		# ANTs-specific file paths
-		TemplatePath="${ANTsPath}/${SelectedTemplate}" 					# Directory for ANTs template to be used.
+		TemplatePath="smb://mpib-berlin.mpg.de/fb-lip/lndg/Standards/ANTS/MICCAI2012-Multi-Atlas-Challenge-Data" #! will need to fix					# Directory for ANTs template to be used.
 		TemplateImage="${TemplatePath}/T_template0.nii.gz" 											# ANTs bet template image (e.g. averaged anatomical image) - mandatory
 		ProbabilityImage="${TemplatePath}/T_template0_BrainCerebellumProbabilityMask.nii.gz" 		# ANTs bet brain probability image of the template image - mandatory
 		RegistrationMask="${TemplatePath}/T_template0_BrainCerebellumRegistrationMask.nii.gz" 		# ANTs bet brain mask of the template image (i.e. rough binary mask of brain location) - optional (recommended)
@@ -48,13 +51,16 @@ for SUB in ${SubjectID} ; do
     		echo "module load ants/2.2.0" 							>> job
 		
 		# Create temporary folder.
-		echo "mkdir ${FMPath}/tempANTs"						>> job
-		echo "echo 'ANTs will start now' >> ${StartLog}"		>> job
+		echo "mkdir -p ${FMPath}/tempANTs"						>> job
+		echo "echo 'ANTs will start now' >> ${StartLog}"		>>	job
 		
 		#### From HCP Pipeline ###
+		
+		echo "cd ${FMpath}"		>> job
+		
 		#divide by two
 
-		echo "fslmaths ${MagnitudeInputName} -Tmean ${FMPath}/Magnitude" 		>> job
+		echo "fslmaths ${FieldOrigPath}/${MagImage} -Tmean MagnitudeMean" 		>> job
 
 		### They say BET, I'm going to use ANTs bra
 
@@ -62,19 +68,19 @@ for SUB in ${SubjectID} ; do
 		
 		# Perform Brain Extraction
 		
-		echo -n "antsBrainExtraction.sh -d 3 -a ${FMPath}/${AnatImage}.nii.gz -e ${TemplateImage} " 	>> job
-		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -o ${FMPath}" 					>> job
+		echo -n "antsBrainExtraction.sh -d 3 -a MagnitudeMean.nii.gz -e ${TemplateImage} " 	>> job
+		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -o ${ANTsPath}" 					>> job
 
 		# If the final ANTs output isn't created, write a text file to be used as a verification of the output outcome.
-		echo "if [ ! -f ${FMPath}/BrainExtractionBrain.nii.gz ]; then echo 'BrainExtractionBrain file was not produced.' >> ${CrashLog}; fi" >> job
+		echo "if [ ! -f ${ANTsPath}BrainExtractionBrain.nii.gz ]; then echo 'BrainExtractionBrain file was not produced.' >> ${CrashLog}; fi" >> job
 
-		echo "mv ${FMPath}/BrainExtractionBrain.nii.gz ${FMPath}/Magnitude_brain.nii.gz"		>> job
+		echo "cp ${ANTsPath}BrainExtractionBrain.nii.gz ${FMPath}/Magnitude_brain.nii.gz"		>> job
 
 		#${FSLDIR}/bin/imcp ${PhaseInputName} ${WD}/Phase
 
 		echo "fsl_prepare_fieldmap SIEMENS ${PhaseInputName} ${FMPath}/Magnitude_brain 2.46"		>> job
 
-		echo "cd ${FMPath}"									>> job
+		## echo "cd ${FMPath}"									>> job
 		echo "chmod -R 770 ."  									>> job
 
 		qsub job
