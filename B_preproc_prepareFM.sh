@@ -3,10 +3,10 @@
 source preproc2_config.sh
 
 # PBS Log Info
-CurrentPreproc="greprep"
-CurrentLog="${LogPath}/${CurrentPreproc}"
+#CurrentPreproc="greprep"
+#CurrentLog="${LogPath}/${CurrentPreproc}"
 
-if [ ! -d ${CurrentLog} ]; then mkdir -p ${CurrentLog}; chmod 770 ${CurrentLog}; fi
+#if [ ! -d ${CurrentLog} ]; then mkdir -p ${CurrentLog}; chmod 770 ${CurrentLog}; fi
 
 Loop over participants & sessions (if they exist)
 
