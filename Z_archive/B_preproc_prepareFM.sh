@@ -44,12 +44,6 @@ for SUB in ${SubjectID} ; do
 		ProbabilityImage="${TemplatePath}/T_template0_BrainCerebellumProbabilityMask.nii.gz" 		# ANTs bet brain probability image of the template image - mandatory
 		RegistrationMask="${TemplatePath}/T_template0_BrainCerebellumRegistrationMask.nii.gz" 		# ANTs bet brain mask of the template image (i.e. rough binary mask of brain location) - optional (recommended)
 		
-		# check if FM image exists
-		if [ ! -f ${FieldOrigPath}/${PhaseImage}.nii.gz ]; then
-			echo "No Fieldmap image found for ${SUB}"
-			continue
-		fi
-		
 		# check if ANTs results already produced
 		if [ -f ${ANTsPath}/${ANTsName}BrainExtractionBrain.nii.gz ] || [ -f ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz ]; then 	# Verify if ANTs output was already created
 			continue
@@ -72,11 +66,7 @@ for SUB in ${SubjectID} ; do
 		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
 		     	
     	echo "module load ants/2.2.0" 							>> job
-		#echo "module load fsl/5.0" 							>> job
-		echo "FSLDIR=/home/mpib/LNDG/toolboxes/FSL/fsl-5.0.11"  >> job
-		echo ". ${FSLDIR}/etc/fslconf/fsl.sh"                   >> job
-		echo "PATH=${FSLDIR}/bin:${PATH}"                       >> job
-		echo "export FSLDIR PATH"                               >> job
+		echo "module load fsl/5.0" 							>> job
 		
 		# Create temporary folder.
 		echo "mkdir -p ${ANTsPath}"						>> job
@@ -108,20 +98,8 @@ for SUB in ${SubjectID} ; do
 		
 		echo "mv ${ANTsPath}/${ANTsName}BrainExtractionBrain.nii.gz ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz" >> job
 		echo "rm -r ${ANTsPath}" >> job
-		
-		# perform bet extraction
-		
-		echo "bet ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz" >> job
-		
-		# erode boundary voxels (recommended in FSL documentation for field map preparation)
-		
-		echo "fslmaths ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz -ero ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz"
-		
-		
 
-# AP - binaries erode brain mask for QC purposes
-
-#${FSLDIR}/bin/imcp ${PhaseInputName} ${WD}/Phase
+		#${FSLDIR}/bin/imcp ${PhaseInputName} ${WD}/Phase
 
 		echo "fsl_prepare_fieldmap SIEMENS ${FieldOrigPath}/${PhaseImage}.nii.gz ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz ${FMpath}/${SUB}_fmap_rads 2.46"		>> job
 

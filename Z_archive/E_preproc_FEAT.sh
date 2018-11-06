@@ -16,31 +16,35 @@ CurrentLog="${LogPath}/${CurrentPreproc}"
 if [ ! -d ${CurrentLog} ]; then mkdir -p ${CurrentLog}; chmod 770 ${CurrentLog}; fi
 
 # Error log
-Error_Log="${CurrentLog}_error_summary.txt"; echo "" >> ${Error_Log}; chmod 770 ${CurrentLog}
+Error_Log="${CurrentLog}/${CurrentPreproc}_error_summary.txt"; echo "" >> ${Error_Log}; chmod 770 ${CurrentLog}
 
 # Loop over participants, sessions (if they exist) & runs/conditions/tasks/etc
 for SUB in ${SubjectID} ; do
-	if [ -z "${SessionID}" ]; then Session="NoSessions" ; SessionFolder="" ; SessionName=""
-	else Session="${SessionID}"
-	fi	
-	for SES in ${Session}; do
-		if [ "${Session}" != "NoSessions" ]; then
-			if [ ! -d ${ProjectDirectory}/data/${SUB}/${SES} ]; then continue
-			else SessionFolder="${SES}/"; SessionName="${SES}_"
-			fi			
-		fi
+	for TASK in ${TaskID}; do
+		
+		if [ $TASK == "rest" ]; then RunID="NoRun"; else source preproc2_config.sh; fi
+				
 		for RUN in ${RunID}; do
 			
 			# Name of functional image to be used.
-			FuncImage="${SUB}_${SessionName}${RUN}"	
+			if [ ${TASK} == "rest" ]; then
+				FuncImage="${SUB}_task-${TASK}_bold"
+			elif [ ${TASK} == "eyemem" ]; then
+				FuncImage="${SUB}_task-${TASK}_run-${RUN}_bold"
+			fi
 			# Name of brain extracted anatomical and functional image to be used.
-			AnatImage="${SUB}_${SessionName}t1_brain"
+			AnatImage="${SUB}_T1w_brain"
+			
 			# Path to the original functional image folder.
-			OriginalPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}mri/${RUN}"
+			OriginalPath="${DataPath}/${SUB}/func"
 			# Path to the pipeline specific folder.
-			FuncPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}${PreprocPipe}/${RUN}"	
-			# Path to the anatomical imaged
-			AnatPath="${ProjectDirectory}/data_renamed/${SUB}/${SessionFolder}mri/t1"
+			if [ ${TASK} == "rest" ]; then
+				FuncPath="${WorkingDirectory}/data/mri/resting_state/preproc/${SUB}"
+			elif [ ${TASK} == "eyemem" ]; then
+				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/run-${RUN}"
+			fi
+			# Path to the anatomical image
+			AnatPath="${WorkingDirectory}/data/mri/anat/preproc/ANTs/${SUB}"
 			
 			if [ ! -f ${OriginalPath}/${FuncImage}.nii.gz ]; then
 				continue
@@ -79,7 +83,7 @@ for SUB in ${SubjectID} ; do
 			
 			# Gridwise
 			echo "#PBS -N ${CurrentPreproc}_${FuncImage}" 						>> job # Job name 
-			echo "#PBS -l walltime=4:00:00" 									>> job # Time until job is killed 
+			echo "#PBS -l walltime=12:00:00" 									>> job # Time until job is killed 
 			echo "#PBS -l mem=4gb" 												>> job # Books 4gb RAM for the job 
 			echo "#PBS -m n" 													>> job # Email notification on abort/end, use 'n' for no notification 
 			echo "#PBS -o ${CurrentLog}" 										>> job # Write (output) log to group log folder 
@@ -88,7 +92,7 @@ for SUB in ${SubjectID} ; do
 			echo ". /etc/fsl/5.0/fsl.sh"										>> job # Set fsl environment 	
 
 			# Create a designfile from the common template file, which should be saved in the scripts folder. 
-			echo "cp ${ScriptsPath}/B_feat_template.fsf  ${FuncPath}/${FuncImage}.fsf"     	>> job
+			echo "cp ${ScriptsPath}/D_feat_template.fsf  ${FuncPath}/${FuncImage}.fsf"     	>> job
 
 			# Adjust paths to the location of the fsf file
 			echo "cd ${FuncPath}"           												>> job
@@ -117,9 +121,10 @@ for SUB in ${SubjectID} ; do
             echo "sed  -i 's|dummyNonLinearWarp|'${NonLinearWarp}'|g'  			${FuncImage}.fsf" 			>> job
 				# B0 unwarping
 			if [ "${Unwarping}" == "1" ]; then
-				FieldRad="${ProjectDirectory}/data_renamed/${SUB}/preproc2/greprep/${SUB}_fmap_rads"
-				FieldMapBrain="${ProjectDirectory}/data_renamed/${SUB}/preproc2/greprep/${SUB}_Magnitude_brain"
+				FieldRad="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/${SUB}_fmap_rads"
+				FieldMapBrain="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/${SUB}_fmap_MeanMagnitude_brain"
 			else FieldRad="Unused"; FieldMapBrain="Unused"; fi 
+			echo "sed  -i 's|dummyUnwarping|'${Unwarping}'|g'  														  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyFieldRad|'${FieldRad}'|g'  														  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyFieldMapBrain|'${FieldMapBrain}'|g'  												  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyEpiSpacing|'${EpiSpacing}'|g'  													  		${FuncImage}.fsf"           >> job
@@ -141,5 +146,5 @@ for SUB in ${SubjectID} ; do
 			rm job
 			
 		done
-	done 
+	done
 done

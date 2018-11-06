@@ -4,14 +4,15 @@
 
 source preproc_config.sh
 
-mkdir ${ProjectDirectory}/logs
-mkdir ${LogPath}
 mkdir ${LogPath}/BET
 mkdir ${LogPath}/FEAT
 mkdir ${LogPath}/Detrend_Filt
 mkdir ${LogPath}/ICA
 mkdir ${LogPath}/Denoise
 mkdir ${LogPath}/FLIRT
+mkdir ${LogPath}/prepareFM
+mkdir ${LogPath}/BET_QC
+
 
 mkdir ${ScriptsPath}/05_FIX/rejcomps
 mkdir ${LogPath}/FIX/Extract_Features
