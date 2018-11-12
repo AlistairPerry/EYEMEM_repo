@@ -18,6 +18,9 @@ if [ ! -d ${CurrentLog} ]; then mkdir -p ${CurrentLog}; chmod 770 ${CurrentLog};
 # Error log
 Error_Log="${CurrentLog}/${CurrentPreproc}_error_summary.txt"; echo "" >> ${Error_Log}; chmod 770 ${CurrentLog}
 
+# Calculate new total number of volumes (initial volumes already deleted)
+NewVolumes=$(expr ${TotalVolumes} - ${DeleteVolumes})
+
 # Loop over participants, sessions (if they exist) & runs/conditions/tasks/etc
 for SUB in ${SubjectID} ; do
 	for TASK in ${TaskID}; do
@@ -27,45 +30,42 @@ for SUB in ${SubjectID} ; do
 		for RUN in ${RunID}; do
 			
 			# Name of functional image to be used.
-			if [ ${TASK} == "rest" ]; then
-				FuncImage="${SUB}_task-${TASK}_bold"
-			elif [ ${TASK} == "eyemem" ]; then
-				FuncImage="${SUB}_task-${TASK}_run-${RUN}_bold"
-			fi
+			FuncImage="func_data_mc_unwarp"
 			# Name of brain extracted anatomical and functional image to be used.
 			AnatImage="${SUB}_T1w_brain"
 			
-			# Path to the original functional image folder.
-			OriginalPath="${DataPath}/${SUB}/func"
 			# Path to the pipeline specific folder.
 			if [ ${TASK} == "rest" ]; then
-				FuncPath="${WorkingDirectory}/data/mri/resting_state/preproc/${SUB}"
+				FuncPath="${WorkingDirectory}/data/mri/resting_state_new/preproc/${SUB}"
 			elif [ ${TASK} == "eyemem" ]; then
 				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/run-${RUN}"
 			fi
 			# Path to the anatomical image
 			AnatPath="${WorkingDirectory}/data/mri/anat/preproc/ANTs/${SUB}"
 			
-			if [ ! -f ${OriginalPath}/${FuncImage}.nii.gz ]; then
+			if [ ! -f ${FuncPath}/B_unwarp/${FuncImage}.nii.gz ]; then
 				continue
 			elif [ ! -f ${AnatPath}/${AnatImage}.nii.gz ]; then
 				echo "Anatomical image for ${SUB} not found: ${AnatPath}/${AnatImage}.nii.gz does not exist, FEAT was halted" >> ${Error_Log}
 				continue
-			elif [ -d ${FuncPath}/FEAT.feat ]; then
-				if [ -d ${FuncPath}/FEAT+.feat ]; then
-					rm -rf ${FuncPath}/FEAT+.feat
+			elif [ -d ${FuncPath}/C_FEAT.feat ]; then
+				if [ -d ${FuncPath}/C_FEAT+.feat ]; then
+					rm -rf ${FuncPath}/C_FEAT+.feat
 				fi
-				if [ -f ${FuncPath}/FEAT.feat/prefiltered_func_data.nii.gz ]; then
-					rm -rf ${FuncPath}/FEAT.feat
-				elif [ ! -f ${FuncPath}/FEAT.feat/filtered_func_data.nii.gz ]; then
-					rm -rf ${FuncPath}/FEAT.feat
-				elif [ -f ${FuncPath}/FEAT.feat/filtered_func_data.nii.gz ]; then
+				if [ -f ${FuncPath}/C_FEAT.feat/prefiltered_func_data.nii.gz ]; then
+					rm -rf ${FuncPath}/C_FEAT.feat
+				elif [ ! -f ${FuncPath}/C_FEAT.feat/filtered_func_data.nii.gz ]; then
+					rm -rf ${FuncPath}/C_FEAT.feat
+				elif [ -f ${FuncPath}/C_FEAT.feat/filtered_func_data.nii.gz ]; then
 					continue
 				fi
 			fi
 			
 			# Create run specific directory for preprocessing images and files
 			if [ ! -d ${FuncPath} ]; then mkdir -p ${FuncPath}; fi
+				
+			# Create output path for motion outlier detection
+			if [ ! -d ${FuncPath}/D_motionout ]; then mkdir -p ${FuncPath}/D_motionout; fi
 			
 			# TODO: Set different image volume amount/volumes to be deleted for resting state and runs (or different runs)
 			# NOTE: Only necessary if niftis have different total volumes.
@@ -84,12 +84,16 @@ for SUB in ${SubjectID} ; do
 			# Gridwise
 			echo "#PBS -N ${CurrentPreproc}_${FuncImage}" 						>> job # Job name 
 			echo "#PBS -l walltime=12:00:00" 									>> job # Time until job is killed 
-			echo "#PBS -l mem=4gb" 												>> job # Books 4gb RAM for the job 
+			echo "#PBS -l mem=8gb" 												>> job # Books 4gb RAM for the job 
 			echo "#PBS -m n" 													>> job # Email notification on abort/end, use 'n' for no notification 
 			echo "#PBS -o ${CurrentLog}" 										>> job # Write (output) log to group log folder 
 			echo "#PBS -e ${CurrentLog}" 										>> job # Write (error) log to group log folder 
 
 			echo ". /etc/fsl/5.0/fsl.sh"										>> job # Set fsl environment 	
+			#echo "FSLDIR=/home/mpib/LNDG/toolboxes/FSL/fsl-5.0.11"  >> job
+			#echo ". ${FSLDIR}/etc/fslconf/fsl.sh"                   >> job
+			#echo "PATH=${FSLDIR}/bin:${PATH}"                       >> job
+			#echo "export FSLDIR PATH"                               >> job
 
 			# Create a designfile from the common template file, which should be saved in the scripts folder. 
 			echo "cp ${ScriptsPath}/D_feat_template.fsf  ${FuncPath}/${FuncImage}.fsf"     	>> job
@@ -102,16 +106,16 @@ for SUB in ${SubjectID} ; do
 				# As a side note, we're using the '|' character so as to avoid issues when replacing strings which include slashes.
 			
 			# Primary Directories	
-			echo "sed  -i 's|dummyFEAT|'${FuncPath}/FEAT.feat'|g'  				${FuncImage}.fsf"          	>> job	
-			echo "sed  -i 's|dummyOriginal|'${OriginalPath}/${FuncImage}'|g'  	${FuncImage}.fsf"      		>> job
+			echo "sed  -i 's|dummyFEAT|'${FuncPath}/C_FEAT.feat'|g'  				${FuncImage}.fsf"          	>> job	
+			echo "sed  -i 's|dummyOriginal|'${FuncPath}/B_unwarp/${FuncImage}'|g'  	${FuncImage}.fsf"      		>> job
 			echo "sed  -i 's|dummyAnatomical|'${AnatPath}/${AnatImage}'|g'  	${FuncImage}.fsf"     		>> job
 			echo "sed  -i 's|dummyStandard|'${MNIImage}'|g'						${FuncImage}.fsf"          	>> job
 			# Primary Parameters
 			echo "sed  -i 's|dummyToggleMCFLIRT|'${ToggleMCFLIRT}'|g'  			${FuncImage}.fsf"           >> job
 			echo "sed  -i 's|dummyBETFunc|'${BETFunc}'|g'  						${FuncImage}.fsf"           >> job
 			echo "sed  -i 's|dummyTR|'${TR}'|g'  								${FuncImage}.fsf"           >> job
-			echo "sed  -i 's|dummyTotalVolumes|'${TotalVolumes}'|g'  			${FuncImage}.fsf"           >> job
-			echo "sed  -i 's|dummyDeleteVolumes|'${DeleteVolumes}'|g'  			${FuncImage}.fsf"           >> job
+			echo "sed  -i 's|dummyTotalVolumes|'${NewVolumes}'|g'  			${FuncImage}.fsf"           >> job
+			echo "sed  -i 's|dummyDeleteVolumes|'0'|g'  			${FuncImage}.fsf"           >> job
 			echo "sed  -i 's|dummyHighpassFEAT|'${HighpassFEAT}'|g'  			${FuncImage}.fsf" 			>> job
             echo "sed  -i 's|dummySmoothingKernel|'${SmoothingKernel}'|g'  		${FuncImage}.fsf" 			>> job
 			echo "sed  -i 's|dummyRegisterStructDOF|'${RegisterStructDOF}'|g'  	${FuncImage}.fsf" 			>> job
@@ -138,8 +142,12 @@ for SUB in ${SubjectID} ; do
 			# Run feat command.                                                                    
 			echo "feat ${FuncImage}.fsf"           										>> job
 			
+			# Run motion outlier detection
+			
+			echo "fsl_motion_outliers -i ${FuncPath}/A_MC/func_data_raw.nii.gz -o ${FuncPath}/D_motionout/${SUB}_motionout.txt -s ${FuncPath}/D_motionout/${SUB}_${MocoMetric}.txt -p ${FuncPath}/D_motionout/${SUB}_${MocoMetric}_plot.png --${MocoMetric} -v >> ${FuncPath}/D_motionout/report.txt" >> job # dummy scans already discarded in input image
+			
 			# Error log
-			echo "if [ ! -f ${FuncPath}/FEAT.feat/filtered_func_data.nii.gz ];"  		>> job
+			echo "if [ ! -f ${FuncPath}/C_FEAT.feat/filtered_func_data.nii.gz ];"  		>> job
 			echo "then echo 'Error in ${FuncImage}' >> ${Error_Log}; fi"				>> job
 			
 			qsub job

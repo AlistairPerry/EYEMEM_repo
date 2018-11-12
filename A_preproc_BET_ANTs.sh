@@ -37,11 +37,14 @@ for SUB in ${SubjectID} ; do
 			continue
 		elif [ ! -f ${ANTsPath}/${SUB}_T1w_brain.nii.gz ]; then
 			if [ -f ${CrashLog} ]; then 							# Verify if crash log exists, if so, delete intermediary ANTs files and re-run ANTs.
-				rm -rf ${AntsPath}				
+				rm -rf ${ANTsPath}				
 			elif [ -f ${StartLog} ]; then 							# Verify if ANTs job started. Could be problematic if job did not finish.
 				continue
 			fi
 		fi
+		
+		# Create ANTS folder
+		if [ ! -d ${ANTsPath} ]; then mkdir -p ${ANTsPath}; chmod 770 ${ANTsPath}; fi
 		
 		# ANTs settings
 		KeepTemporaryFiles="0" # don't save temporary files
@@ -57,7 +60,7 @@ for SUB in ${SubjectID} ; do
 		# Gridwise
 		echo "#PBS -N ${CurrentPreproc}_${SUB}" 	>> job # Job name 
 		echo "#PBS -l walltime=12:00:00" 						>> job # Time until job is killed 
-		echo "#PBS -l mem=8gb" 								>> job # Books 10gb RAM for the job 
+		echo "#PBS -l mem=10gb" 								>> job # Books 10gb RAM for the job 
 		echo "#PBS -m n" 										>> job # Email notification on abort/end, use 'n' for no notification 
 		echo "#PBS -o ${CurrentLog}" 							>> job # Write (output) log to group log folder 
 		echo "#PBS -e ${CurrentLog}" 							>> job # Write (error) log to group log folder 
@@ -66,9 +69,6 @@ for SUB in ${SubjectID} ; do
 		
     	echo "module load ants/2.2.0" 							>> job
 		
-		# Create temporary folder.
-		echo "mkdir -p ${ANTsPath}"						>> job
-		echo "chmod 770 ${ANTsPath}"						>> job
 		echo "cd ${ANTsPath}"		>> job
 		echo "echo 'ANTs will start now' >> ${StartLog}"		>> job
 		
@@ -81,6 +81,8 @@ for SUB in ${SubjectID} ; do
 		echo "if [ ! -f ${ANTsPath}/${ANTsName}BrainExtractionBrain.nii.gz ]; then echo 'BrainExtractionBrain file was not produced.' >> ${CrashLog}; exit; fi" >> job
 		
 		echo "mv ${ANTsPath}/${ANTsName}BrainExtractionBrain.nii.gz ${ANTsPath}/${SUB}_T1w_brain.nii.gz" >> job
+		
+		echo "rm ${StartLog}" >> job
 
 		qsub job
 		rm job

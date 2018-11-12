@@ -6,8 +6,14 @@
 
 source preproc2_config.sh
 
+# Preprocessing suffix. Denotes the preprocessing stage of the data.
+InputStage="feat_detrended_bandpassed" 		# Before generating filtered_func_data.ica
+
+# Test
+#SubjectID="EYEMEMtest"
+
 # PBS Log Info
-CurrentPreproc="ICA"
+CurrentPreproc="ICA_noUnwarp"
 CurrentLog="${LogPath}/${CurrentPreproc}"
 if [ ! -d ${CurrentLog} ]; then mkdir ${CurrentLog}; chmod 770 ${CurrentLog}; fi
 
@@ -28,13 +34,12 @@ for SUB in ${SubjectID} ; do
 			# Path to the anatomical and functional image folders.
 			AnatPath="${WorkingDirectory}/data/mri/anat/preproc/ANTs/${SUB}"					# Path for anatomical image
 			if [ ${TASK} == "rest" ]; then
-				FuncPath="${WorkingDirectory}/data/mri/resting_state/preproc/${SUB}/FEAT.feat"	# Path for run specific functional image
+				FuncPath="${WorkingDirectory}/data/mri/resting_state_noUnwarp/preproc/${SUB}/FEAT.feat"	# Path for run specific functional image # change later!!!
 			else
-				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/run-${RUN}/FEAT.feat"
+				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/FEAT.feat" # double check path name after processing!!!
 			fi
 			
 			if [ ! -f ${FuncPath}/${FuncImage}.nii.gz ]; then
-				echo "No functional image found for ${SUB}"
 				continue
 			elif [ -d ${FuncPath}/filtered_func_data.ica ]; then
 				cd ${FuncPath}/filtered_func_data.ica
@@ -57,11 +62,7 @@ for SUB in ${SubjectID} ; do
 			echo "#PBS -e ${CurrentLog}" 								>> job # Write (error) log to group log folder 
 
 			# Initialize FSL
-			# echo ". /etc/fsl/5.0/fsl.sh"								>> job # Set fsl environment 	
-			echo "FSLDIR=/home/mpib/LNDG/toolboxes/FSL/fsl-5.0.11"  >> job
-			echo ". ${FSLDIR}/etc/fslconf/fsl.sh"                   >> job
-			echo "PATH=${FSLDIR}/bin:${PATH}"                       >> job
-			echo "export FSLDIR PATH"                               >> job
+			echo ". /etc/fsl/5.0/fsl.sh"								>> job # Set fsl environment 	
 		
 			# Variables for background image and ICA
 			

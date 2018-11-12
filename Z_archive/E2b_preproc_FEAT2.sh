@@ -11,7 +11,7 @@
 source preproc2_config.sh
 
 # PBS Log Info
-CurrentPreproc="FEAT_demeanFM"
+CurrentPreproc="FEAT_noUnwarp"
 CurrentLog="${LogPath}/${CurrentPreproc}"
 if [ ! -d ${CurrentLog} ]; then mkdir -p ${CurrentLog}; chmod 770 ${CurrentLog}; fi
 
@@ -39,7 +39,7 @@ for SUB in ${SubjectID} ; do
 			OriginalPath="${DataPath}/${SUB}/func"
 			# Path to the pipeline specific folder.
 			if [ ${TASK} == "rest" ]; then
-				FuncPath="${WorkingDirectory}/data/mri/resting_state_demeanFM/preproc/${SUB}"
+				FuncPath="${WorkingDirectory}/data/mri/resting_state_noUnwarp/preproc/${SUB}"
 			elif [ ${TASK} == "eyemem" ]; then
 				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/run-${RUN}"
 			fi
@@ -89,7 +89,8 @@ for SUB in ${SubjectID} ; do
 			echo "#PBS -o ${CurrentLog}" 										>> job # Write (output) log to group log folder 
 			echo "#PBS -e ${CurrentLog}" 										>> job # Write (error) log to group log folder 
 
-			echo ". /etc/fsl/5.0/fsl.sh"										>> job # Set fsl environment 	
+			#echo ". /etc/fsl/5.0/fsl.sh"										>> job # Set fsl environment 	
+			echo "module load fsl/5.0"  >> job
 
 			# Create a designfile from the common template file, which should be saved in the scripts folder. 
 			echo "cp ${ScriptsPath}/D_feat_template.fsf  ${FuncPath}/${FuncImage}.fsf"     	>> job
@@ -121,8 +122,8 @@ for SUB in ${SubjectID} ; do
             echo "sed  -i 's|dummyNonLinearWarp|'${NonLinearWarp}'|g'  			${FuncImage}.fsf" 			>> job
 				# B0 unwarping
 			if [ "${Unwarping}" == "1" ]; then
-				FieldRad="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/demean_ants+fsl_bet_ero/${SUB}_fmap_rads"
-				FieldMapBrain="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/demean_ants+fsl_bet_ero/${SUB}_fmap_MeanMagnitude_brain"
+				FieldRad="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/ants+fsl_bet_ero/${SUB}_fmap_rads"
+				FieldMapBrain="${WorkingDirectory}/data/mri/fmap/preproc/${SUB}/ants+fsl_bet_ero/${SUB}_fmap_MeanMagnitude_brain"
 			else 
 				FieldRad="Unused" 
 				FieldMapBrain="Unused" 

@@ -66,7 +66,11 @@ for SUB in ${SubjectID} ; do
 		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
 		     	
     	echo "module load ants/2.2.0" 							>> job
-		echo "module load fsl/5.0" 							>> job
+		#echo "module load fsl/5.0" 							>> job
+		echo "FSLDIR=/home/mpib/LNDG/toolboxes/FSL/fsl-5.0.11"  >> job
+		echo ". ${FSLDIR}/etc/fslconf/fsl.sh"                   >> job
+		echo "PATH=${FSLDIR}/bin:${PATH}"                       >> job
+		echo "export FSLDIR PATH"                               >> job
 		
 		# Create temporary folder.
 		echo "mkdir -p ${ANTsPath}"						>> job

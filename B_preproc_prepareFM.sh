@@ -69,14 +69,17 @@ for SUB in ${SubjectID} ; do
 		echo "#PBS -o ${CurrentLog}" 							>> job # Write (output) log to group log folder 
 		echo "#PBS -e ${CurrentLog}" 							>> job # Write (error) log to group log folder 
     	
-		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
+		# echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
 		     	
-    	echo "module load ants/2.2.0" 							>> job
+		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
+		
 		#echo "module load fsl/5.0" 							>> job
-		echo "FSLDIR=/home/mpib/LNDG/toolboxes/FSL/fsl-5.0.11"  >> job
+		echo "FSLDIR=/home/mpib/LNDG/FSL/fsl-5.0.11"  >> job
 		echo ". ${FSLDIR}/etc/fslconf/fsl.sh"                   >> job
 		echo "PATH=${FSLDIR}/bin:${PATH}"                       >> job
 		echo "export FSLDIR PATH"                               >> job
+		
+		echo "module load ants/2.2.0" 							>> job
 		
 		# Create temporary folder.
 		echo "mkdir -p ${ANTsPath}"						>> job
@@ -115,9 +118,11 @@ for SUB in ${SubjectID} ; do
 		
 		# erode boundary voxels (recommended in FSL documentation for field map preparation)
 		
-		echo "fslmaths ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz -ero ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz"
+		echo "fslmaths ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz -ero ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz" >> job
 		
+		# create binary mask
 		
+		echo "fslmaths ${FMpath}/${SUB}_fmap_MeanMagnitude_brain.nii.gz -bin ${FMpath}/${SUB}_fmap_MeanMagnitude_brain_mask.nii.gz" >> job
 
 # AP - binaries erode brain mask for QC purposes
 
