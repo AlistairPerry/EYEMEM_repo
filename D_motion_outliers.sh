@@ -31,6 +31,7 @@ for SUB in ${SubjectID} ; do
 				FuncPath="${WorkingDirectory}/data/mri/resting_state/preproc/${SUB}"
 			elif [ ${TASK} == "eyemem" ]; then
 				FuncPath="${WorkingDirectory}/data/mri/task/preproc/${SUB}/run-${RUN}"
+			fi
 				
 			if [ ! -f ${OriginalPath}/${FuncImage}.nii.gz ]; then
 				continue
@@ -71,6 +72,9 @@ for SUB in ${SubjectID} ; do
 			# Error log
 			echo "if [ ! -f ${FuncPath}/motionout/${SUB}_motionout.txt ];"  		>> job
 			echo "then echo 'Error in ${FuncImage}' >> ${Error_Log}; fi"				>> job
+			
+			qsub job
+			rm job
 			
 		done
 	done

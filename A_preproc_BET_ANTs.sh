@@ -75,7 +75,7 @@ for SUB in ${SubjectID} ; do
 		# Perform Brain Extraction
 		
 		echo -n "antsBrainExtraction.sh -d ${ImageDimension} -a ${AnatPath}/${AnatImage}.nii.gz -e ${TemplateImage} " 	>> job
-		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -o ${ANTsPath}/${ANTsName}" 					>> job
+		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -q 1 -o ${ANTsPath}/${ANTsName}" 					>> job
 
 		# If the final ANTs output isn't created, write a text file to be used as a verification of the output outcome.
 		echo "if [ ! -f ${ANTsPath}/${ANTsName}BrainExtractionBrain.nii.gz ]; then echo 'BrainExtractionBrain file was not produced.' >> ${CrashLog}; exit; fi" >> job

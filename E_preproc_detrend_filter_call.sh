@@ -2,7 +2,14 @@
 
 ## Compiled Matlab matlab_master_do
 
-source preproc_config.sh
+source preproc2_config.sh
+
+# load FSL
+
+FSLDIR=/home/mpib/LNDG/FSL/fsl-5.0.11
+. ${FSLDIR}/etc/fslconf/fsl.sh      
+PATH=${FSLDIR}/bin:${PATH}         
+export FSLDIR PATH
 
 # Preprocessing suffix. Denotes the preprocessing stage of the data.
 InputStage="feat" 		# Before doing steps on matlab
@@ -51,11 +58,11 @@ for SUB in ${SubjectID} ; do
 			fi
 			
 			# get TR from original image
-			TR=`fslinfo ${OriginalPath}/${FuncImage}.nii.gz | grep pixdim4`; TR=`${TR:15}`
+			TR=`fslinfo ${OriginalPath}/${FuncImage}.nii.gz | grep pixdim4`; TR=${TR:15}
 
 			# Gridwise
 			echo "#PBS -N ${CurrentPreproc}_${SUB}_${TASK}_${RUN}" 			>> job # Job name 
-			echo "#PBS -l walltime=2:00:00" 						>> job # Time until job is killed 
+			echo "#PBS -l walltime=4:00:00" 						>> job # Time until job is killed 
 			echo "#PBS -l mem=4gb" 									>> job # Books 4gb RAM for the job 
 			echo "#PBS -m n" 										>> job # Email notification on abort/end, use 'n' for no notification 
 			echo "#PBS -o ${CurrentLog}" 							>> job # Write (output) log to group log folder 
@@ -65,7 +72,7 @@ for SUB in ${SubjectID} ; do
 			
 			# Inputs must be given in the correct order: 
 				# FuncPath, FuncImage, PolyOrder, TR, HighpassFilterLowCutoff, LowpassFilterHighCutoff, FilterOrder
-			echo -n "./run_C_preproc_detrend_filter_excecute.sh /opt/matlab/R2014b/ " 															>> job 
+			echo -n "./run_E_preproc_detrend_filter_excecute.sh /opt/matlab/R2014b/ " 															>> job 
 			echo "${FuncPath} ${SUB}_${InputStage} ${PolyOrder} ${TR} ${HighpassFilterLowCutoff} ${LowpassFilterHighCutoff} ${FilterOrder}" 	>> job  
 			
 			# Cleanup
