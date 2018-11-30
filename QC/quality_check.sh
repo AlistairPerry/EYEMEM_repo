@@ -32,6 +32,60 @@ export FSLDIR PATH
 
 cd ${ScriptsPath}
 
+#---------------------------- QC step mean raw func -----------------------------
+# create overview of mean raw func images
+for TASK in ${TaskID}; do
+	
+if [ ${TASK} == "rest" ]; then
+	meanRaw_Outpath="${OutPath_rest}/meanRaw"
+elif [ ${TASK} == "eyemem" ]; then
+	meanRaw_Outpath="${OutPath_task}/meanRaw"
+fi
+
+if [ ! -d ${meanRaw_Outpath} ]; then mkdir -p ${meanRaw_Outpath}; chmod 770 ${meanRaw_Outpath}; fi
+	
+cd ${meanRaw_Outpath}
+
+if [ $TASK == "rest" ]; then RunID="NoRun"; else source /home/mpib/LNDG/EyeMem/study_information/A_scripts/QC/preproc2_config.sh; fi
+
+for SUB in ${SubjectID}; do
+	for RUN in ${RunID}; do
+		
+		if [ ${TASK} == "eyemem" ]; then
+			raw_img="${DataPath}/${SUB}/func/${SUB}_task-${TASK}_run-${RUN}_bold"
+		elif [ ${TASK} == "rest" ]; then
+			raw_img="${DataPath}/${SUB}/func/${SUB}_task-${TASK}_bold"
+		fi
+		
+		if [ ! -f ${raw_img}.nii.gz ] || [ -f ${meanRaw_Outpath}/${SUB}_task-${TASK}_rawMean.nii.gz ]; then
+			continue
+		fi
+		
+		fslmaths ${raw_img} -Tmean ${meanRaw_Outpath}/${SUB}_task-${TASK}_run-${RUN}_rawMean
+		
+	done
+done
+
+mean_raw_images=`ls sub-*_task-*_rawMean.nii.gz`
+
+slicesdir ${mean_raw_images}
+
+cd ${meanRaw_Outpath}/slicesdir
+
+mv index.html ${meanRaw_Outpath}
+
+mean_raw_png=`ls sub-*_task-*_rawMean.png`
+
+mv ${mean_raw_png} ${meanRaw_Outpath}
+
+cd ${meanRaw_Outpath}
+
+rm -r ${meanRaw_Outpath}/slicesdir
+
+rm mean_raw_images=`ls sub-*_task-*_rawMean.nii.gz`
+	
+done
+
 #---------------------------- QC step epi2MNI ---------------------------
 # creates a gif of the MNI template and mean filtered func image registered to MNI space 
 
@@ -346,6 +400,7 @@ if [ ! -d ${common_Outpath} ]; then mkdir -p ${common_Outpath}; chmod 770 ${comm
 	
 cd ${common_Outpath}
 
+# create common coordinates per subject
 for SUB in ${SubjectID}; do
 	for RUN in ${RunID}; do
 		
@@ -374,21 +429,63 @@ for SUB in ${SubjectID}; do
 		
 		rm ${mean_func}2standard.nii.gz
 		
-		if [ ! -f common_coords.nii.gz ]; then
-			cp ${mean_func}2standard_mask.nii.gz common_coords.nii.gz
+		if [ ! -f ${SUB}_common_coords.nii.gz ]; then
+			cp ${mean_func}2standard_mask.nii.gz ${SUB}_common_coords.nii.gz
 		fi
 		
 		# add image to common coords mask
-		fslmaths common_coords -mas ${mean_func}2standard_mask common_coords
+		fslmaths ${SUB}_common_coords -mas ${mean_func}2standard_mask ${SUB}_common_coords
 		
 		rm ${mean_func}2standard_mask.nii.gz
 		
+		#create visual
+		if [ -f ${common_Outpath}/${SUB}_common_coords.nii.gz ]; then
+		overlay 1 1 ${MNIImage} -a ${common_Outpath}/${SUB}_common_coords 1 1 ${common_Outpath}/${SUB}_common_coords_overlay
+		fi
+		
 	done
+	
+done
+
+# create common coordinates across subjects with voxel density across subjects
+
+cd ${common_Outpath}
+
+for SUB in ${SubjectID}; do
+	
+	if [ ! -f ${SUB}_common_coords.nii.gz ]; then
+		continue
+	elif [ ! -f common_coords.nii.gz ]; then
+		cp ${SUB}_common_coords.nii.gz common_coords.nii.gz
+	else
+		fslmaths common_coords.nii.gz -add ${SUB}_common_coords.nii.gz common_coords.nii.gz
+	fi
+	
+done
+
+# create common activation mask for each age group separately
+ind=-1
+for SUB in ${SubjectID}; do
+
+	ind=$((ind + 1))
+	
+	if [ ! -f ${SUB}_common_coords.nii.gz ]; then
+		continue
+	elif [ ! -f common_coords_young.nii.gz ] && [ "${age[${ind}]}" -eq "1" ]; then
+		cp ${SUB}_common_coords.nii.gz common_coords_young.nii.gz
+	elif [ ! -f common_coords_old.nii.gz ] && [ "${age[${ind}]}" -eq "2" ]; then
+		cp ${SUB}_common_coords.nii.gz common_coords_old.nii.gz
+	elif [ "${age[${ind}]}" -eq "1" ]; then
+		fslmaths common_coords_young.nii.gz -add ${SUB}_common_coords.nii.gz common_coords_young.nii.gz
+	elif [ "${age[${ind}]}" -eq "2" ]; then
+		fslmaths common_coords_old.nii.gz -add ${SUB}_common_coords.nii.gz common_coords_old.nii.gz
+	fi
+	
 done
 
 #create visual
 
- overlay 1 1 ${MNIImage} -a ${common_Outpath}/common_coords 1 1 ${common_Outpath}/common_coords_overlay
+overlay 1 1 ${MNIImage} -a ${common_Outpath}/common_coords 0 101 ${common_Outpath}/common_coords_overlay
 
 done
 
