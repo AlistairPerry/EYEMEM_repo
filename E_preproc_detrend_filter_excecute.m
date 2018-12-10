@@ -1,7 +1,7 @@
 function C_preproc_detrend_filter_excecute(FuncPath, FuncImage, PolyOrder, TR, HighpassFilterLowCutoff, LowpassFilterHighCutoff, FilterOrder)
 %% For compilation:
 
-% source preproc2_config.sh; /opt/matlab/R2014b/bin/mcc -m E_preproc_detrend_filter_excecute -a ${SharedFilesPath_toolboxes}/NIfTI_20140122 -a ${SharedFilesPath_toolboxes}/spm_detrend -a ${ScriptsPath}/E_matlab_steps
+% source preproc2_config.sh; /opt/matlab/R2017b/bin/mcc -m E_preproc_detrend_filter_excecute -a ${SharedFilesPath_toolboxes}/NIfTI_20140122 -a ${SharedFilesPath_toolboxes}/spm_detrend -a ${ScriptsPath}/E_matlab_steps
 
 disp (['Will attempt to process ' FuncImage ])
 

@@ -72,7 +72,7 @@ for SUB in ${SubjectID} ; do
 			
 			# Inputs must be given in the correct order: 
 				# FuncPath, FuncImage, PolyOrder, TR, HighpassFilterLowCutoff, LowpassFilterHighCutoff, FilterOrder
-			echo -n "./run_E_preproc_detrend_filter_excecute.sh /opt/matlab/R2014b/ " 															>> job 
+			echo -n "./run_E_preproc_detrend_filter_excecute.sh /opt/matlab/R2017b/ " 															>> job 
 			echo "${FuncPath} ${SUB}_${InputStage} ${PolyOrder} ${TR} ${HighpassFilterLowCutoff} ${LowpassFilterHighCutoff} ${FilterOrder}" 	>> job  
 			
 			# Cleanup

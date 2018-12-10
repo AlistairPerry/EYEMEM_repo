@@ -1,87 +1,92 @@
-motion_out_summary Executable
+MATLAB Compiler
 
 1. Prerequisites for Deployment 
 
-Verify that version 9.3 (R2017b) of the MATLAB Runtime is installed.   
+. Verify the MATLAB runtime is installed and ensure you    
+  have installed version 8.4 (R2014b).   
 
-If the MATLAB Runtime is not installed, you can run the MATLAB Runtime installer.
-To find its location, enter
+. If the MATLAB runtime is not installed, do the following:
+  (1) enter
   
-    >>mcrinstaller
+      >>mcrinstaller
       
-at the MATLAB prompt.
+      at MATLAB prompt. The MCRINSTALLER command displays the 
+      location of the MATLAB runtime installer.
 
-Alternatively, download and install the Linux version of the MATLAB Runtime for R2017b 
-from the following link on the MathWorks website:
+  (2) run the MATLAB runtime installer.
 
-    http://www.mathworks.com/products/compiler/mcr/index.html
+Or download the Linux 64-bit version of the MATLAB runtime for R2014b 
+from the MathWorks Web site by navigating to
+
+   http://www.mathworks.com/products/compiler/mcr/index.html
    
-For more information about the MATLAB Runtime and the MATLAB Runtime installer, see 
-Package and Distribute in the MATLAB Compiler documentation  
+   
+For more information about the MATLAB runtime and the MATLAB runtime installer, see 
+Distribution to End Users in the MATLAB Compiler documentation  
 in the MathWorks Documentation Center.    
 
 
 2. Files to Deploy and Package
 
-Files to Package for Standalone 
+Files to package for Standalone 
 ================================
--motion_out_summary 
--run_motion_out_summary.sh (shell script for temporarily setting environment variables 
-                            and executing the application)
+-E_preproc_detrend_filter_excecute 
+-run_E_preproc_detrend_filter_excecute.sh (shell script for temporarily setting 
+                                           environment variables and executing the 
+                                           application)
    -to run the shell script, type
    
-       ./run_motion_out_summary.sh <mcr_directory> <argument_list>
+       ./run_E_preproc_detrend_filter_excecute.sh <mcr_directory> <argument_list>
        
     at Linux or Mac command prompt. <mcr_directory> is the directory 
-    where version 9.3 of the MATLAB Runtime is installed or the directory where 
+    where version 8.4 of the MATLAB runtime is installed or the directory where 
     MATLAB is installed on the machine. <argument_list> is all the 
     arguments you want to pass to your application. For example, 
 
-    If you have version 9.3 of the MATLAB Runtime installed in 
-    /mathworks/home/application/v93, run the shell script as:
+    If you have version 8.4 of the MATLAB runtime installed in 
+    /mathworks/home/application/v84, run the shell script as:
     
-       ./run_motion_out_summary.sh /mathworks/home/application/v93
+       ./run_E_preproc_detrend_filter_excecute.sh /mathworks/home/application/v84
        
     If you have MATLAB installed in /mathworks/devel/application/matlab, 
     run the shell script as:
     
-       ./run_motion_out_summary.sh /mathworks/devel/application/matlab
+       ./run_E_preproc_detrend_filter_excecute.sh /mathworks/devel/application/matlab
 -MCRInstaller.zip
-    Note: if end users are unable to download the MATLAB Runtime using the
-    instructions in the previous section, include it when building your 
-    component by clicking the "Runtime downloaded from web" link in the
-    Deployment Tool.
+   -if end users are unable to download the MATLAB runtime using the above  
+    link, include it when building your component by clicking 
+    the "Runtime downloaded from web" link in the Deployment Tool
 -This readme file 
 
 3. Definitions
 
-For information on deployment terminology, go to
-http://www.mathworks.com/help and select MATLAB Compiler >
-Getting Started > About Application Deployment >
-Deployment Product Terms in the MathWorks Documentation
+For information on deployment terminology, go to 
+http://www.mathworks.com/help. Select MATLAB Compiler >   
+Getting Started > About Application Deployment > 
+Application Deployment Terms in the MathWorks Documentation 
 Center.
+
 
 4. Appendix 
 
-A. Linux systems:
-In the following directions, replace MR by the directory where MATLAB or the MATLAB 
-   Runtime is installed on the target machine.
+A. Linux x86-64 systems:
+   On the target machine, add the MATLAB runtime directory to the environment variable 
+   LD_LIBRARY_PATH by issuing the following commands:
 
-(1) Set the environment variable XAPPLRESDIR to this value:
+        NOTE: <mcr_root> is the directory where MATLAB runtime is installed
+              on the target machine.         
 
-MR/v93/X11/app-defaults
+            setenv LD_LIBRARY_PATH
+                $LD_LIBRARY_PATH:
+                <mcr_root>/v84/runtime/glnxa64:
+                <mcr_root>/v84/bin/glnxa64:
+                <mcr_root>/v84/sys/os/glnxa64:
+                <mcr_root>/v84/sys/opengl/lib/glnxa64
+            setenv XAPPLRESDIR <mcr_root>/v84/X11/app-defaults
 
-
-(2) If the environment variable LD_LIBRARY_PATH is undefined, set it to the following:
-
-MR/v93/runtime/glnxa64:MR/v93/bin/glnxa64:MR/v93/sys/os/glnxa64:MR/v93/sys/opengl/lib/glnxa64
-
-If it is defined, set it to the following:
-
-${LD_LIBRARY_PATH}:MR/v93/runtime/glnxa64:MR/v93/bin/glnxa64:MR/v93/sys/os/glnxa64:MR/v93/sys/opengl/lib/glnxa64
-
-    For more detailed information about setting the MATLAB Runtime paths, see Package and 
-   Distribute in the MATLAB Compiler documentation in the MathWorks Documentation Center.
+   For more detail information about setting the MATLAB runtime paths, see Distribution 
+   to End Users in the MATLAB Compiler documentation in the MathWorks Documentation 
+   Center.
 
 
      
@@ -90,8 +95,8 @@ ${LD_LIBRARY_PATH}:MR/v93/runtime/glnxa64:MR/v93/bin/glnxa64:MR/v93/sys/os/glnxa
               setenv command.
         NOTE: The environment variable syntax utilizes forward 
               slashes (/), delimited by colons (:).  
-        NOTE: When deploying standalone applications, you can
-              run the shell script file run_motion_out_summary.sh 
+        NOTE: When deploying standalone applications, it is possible 
+              to run the shell script file run_E_preproc_detrend_filter_excecute.sh 
               instead of setting environment variables. See 
               section 2 "Files to Deploy and Package".    
 
