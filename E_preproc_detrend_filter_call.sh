@@ -13,7 +13,7 @@ export FSLDIR PATH
 
 # Preprocessing suffix. Denotes the preprocessing stage of the data.
 InputStage="feat" 		# Before doing steps on matlab
-OutputStage="feat_detrended_bandpassed" 		# After running Detrend & Filtering
+OutputStage="feat_detrended_highpassed" 		# After running Detrend & Filtering
 
 # PBS Log Info
 CurrentPreproc="Detrend_Filt"
@@ -49,14 +49,12 @@ for SUB in ${SubjectID} ; do
 			fi
 			
 			if [ ! -f ${FuncPath}/FEAT.feat/filtered_func_data.nii.gz ]; then
+				echo "no filtered_func_data file found for ${FuncImage}"
 				continue
-			else
-				if [ -f ${FuncPath}/${FuncImage}_${OutputStage}.nii.gz ] \
-					&& [ ! -f ${FuncPath}/${FuncImage}_${InputStage}_detrended.nii.gz ] ; then
+			elif [ -f ${FuncPath}/${FuncImage}_${OutputStage}.nii.gz ] && [ ! -f ${FuncPath}/${FuncImage}_${InputStage}_detrended.nii.gz ] ; then
 					continue
-				fi
 			fi
-			
+				
 			# get TR from original image
 			TR=`fslinfo ${OriginalPath}/${FuncImage}.nii.gz | grep pixdim4`; TR=${TR:15}
 
@@ -67,21 +65,21 @@ for SUB in ${SubjectID} ; do
 			echo "#PBS -m n" 										>> job # Email notification on abort/end, use 'n' for no notification 
 			echo "#PBS -o ${CurrentLog}" 							>> job # Write (output) log to group log folder 
 			echo "#PBS -e ${CurrentLog}" 							>> job # Write (error) log to group log folder 
-
+            
 			echo "cd ${ScriptsPath}"	 							>> job
 			
 			# Inputs must be given in the correct order: 
 				# FuncPath, FuncImage, PolyOrder, TR, HighpassFilterLowCutoff, LowpassFilterHighCutoff, FilterOrder
 			echo -n "./run_E_preproc_detrend_filter_excecute.sh /opt/matlab/R2017b/ " 															>> job 
-			echo "${FuncPath} ${SUB}_${InputStage} ${PolyOrder} ${TR} ${HighpassFilterLowCutoff} ${LowpassFilterHighCutoff} ${FilterOrder}" 	>> job  
+			echo "${FuncPath} ${FuncImage}_${InputStage} ${PolyOrder} ${TR} ${HighpassFilterLowCutoff} ${LowpassFilterHighCutoff} ${FilterOrder}" 	>> job  
 			
 			# Cleanup
-			echo "if [ -f ${FuncPath}/${SUB}_${OutputStage}.nii.gz ];" 					>> job
-			echo "then rm -rf ${FuncPath}/${SUB}_${InputStage}_detrended.nii.gz; fi" 		>> job
+			echo "if [ -f ${FuncPath}/${FuncImage}_${OutputStage}.nii.gz ];" 					>> job
+			echo "then rm -rf ${FuncPath}/${FuncImage}_${InputStage}_detrended.nii.gz; fi" 		>> job
 			
 			# Error Log
-			echo "if [ ! -f ${FuncPath}/${SUB}_${OutputStage}.nii.gz ];" 					>> job
-			echo "then echo 'Error in ${SUB}' >> ${Error_Log}; fi"						>> job 
+			echo "if [ ! -f ${FuncPath}/${FuncImage}_${OutputStage}.nii.gz ];" 					>> job
+			echo "then echo 'Error in ${FuncImage}' >> ${Error_Log}; fi"						>> job 
 			
 			qsub job
 			rm job

@@ -29,9 +29,16 @@ for SUB in ${SubjectID} ; do
 				
 		for RUN in ${RunID}; do
 			
-			# Name of anatomical and functional images to be used.
-			FuncImage="${SUB}_feat_detrended_bandpassed"												# Run specific preprocessed functional image
+			# Name of functional image.
+			if [ ${TASK} == "rest" ]; then
+				FuncImage="${SUB}_task-${TASK}_bold_feat_detrended_highpassed"
+			elif [ ${TASK} == "eyemem" ]; then
+				FuncImage="${SUB}_task-${TASK}_run-${RUN}_bold_feat_detrended_highpassed"
+			fi
+			
+			# Name of anatomical images to be used.
 			AnatImage="${SUB}_T1w_brain"											# Brain extracted anatomical image
+			
 			# Path to the anatomical and functional image folders.
 			AnatPath="${WorkingDirectory}/data/mri/anat/preproc/ANTs/${SUB}"					# Path for anatomical image
 			if [ ${TASK} == "rest" ]; then

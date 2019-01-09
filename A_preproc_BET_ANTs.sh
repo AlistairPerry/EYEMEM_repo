@@ -65,7 +65,7 @@ for SUB in ${SubjectID} ; do
 		echo "#PBS -o ${CurrentLog}" 							>> job # Write (output) log to group log folder 
 		echo "#PBS -e ${CurrentLog}" 							>> job # Write (error) log to group log folder 
     	
-		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interfierence when running antsBrainExtraction.sh
+		echo "sleep $(( RANDOM % 120 ))"						>> job # Sleep for a random period between 1-60 seconds, used to avoid interference when running antsBrainExtraction.sh
 		
     	echo "module load ants/2.2.0" 							>> job
 		
@@ -74,7 +74,7 @@ for SUB in ${SubjectID} ; do
 		
 		# Perform Brain Extraction
 		
-		echo -n "antsBrainExtraction.sh -d ${ImageDimension} -a ${AnatPath}/${AnatImage}.nii.gz -e ${TemplateImage} " 	>> job
+		echo -n "${ScriptsPath}/antsBrainExtraction_cpgeom.sh -d ${ImageDimension} -a ${AnatPath}/${AnatImage}.nii.gz -e ${TemplateImage} " 	>> job
 		echo  "-m ${ProbabilityImage} -f ${RegistrationMask} -k ${KeepTemporaryFiles} -q 1 -o ${ANTsPath}/${ANTsName}" 					>> job
 
 		# If the final ANTs output isn't created, write a text file to be used as a verification of the output outcome.
